@@ -24,6 +24,10 @@ export default {
       type: String,
       default: "https://cdn.jsdelivr.net/npm/superstore-arrow/superstore.arrow",
     },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -33,6 +37,36 @@ export default {
     }
   },
   methods: {
+    async init() {
+      const [perspective, buf] = await Promise.all([
+        this.loadPerspectiveModules(),
+        this.loadBuffer(),
+      ]);
+
+      const worker = await perspective.worker();
+      this.$viewer = this.$refs.viewer;
+
+      this.$viewer.addEventListener("perspective-config-update", this.onConfigUpdate);
+      this.injectCss();
+
+      const name = `my_arrow_${index++}`;
+      await worker.table(buf, { name });
+      await this.$viewer.load(worker);
+      await this.$viewer.restore({
+        table: name,
+        plugin: this.defaultPlugin,
+        settings: true,
+      });
+    },
+    injectCss() {
+      if (this.readonly) {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(`#menu-bar { display: none !important; }`);
+  
+        const shadow = this.$viewer.shadowRoot
+        shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+      }
+    },
     onConfigUpdate(e) {
       this.setConfig(e.detail.getConfig());
     },
@@ -68,25 +102,8 @@ export default {
       return await fetch(this.arrow).then(r => r.arrayBuffer());
     }
   },
-  async mounted() {
-    const [perspective, buf] = await Promise.all([
-      this.loadPerspectiveModules(),
-      this.loadBuffer(),
-    ]);
-
-    const worker = await perspective.worker();
-    this.$viewer = this.$refs.viewer;
-
-    this.$viewer.addEventListener("perspective-config-update", this.onConfigUpdate);
-
-    const name = `my_arrow_${index++}`;
-    await worker.table(buf, { name });
-    await this.$viewer.load(worker);
-    await this.$viewer.restore({
-      table: name,
-      plugin: this.defaultPlugin,
-      settings: true,
-    });
+  mounted() {
+    this.init();
   },
   beforeDestroy() {
     // https://perspective-dev.github.io/guide/how_to/javascript/deleting.html
