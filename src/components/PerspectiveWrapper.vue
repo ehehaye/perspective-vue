@@ -5,8 +5,10 @@
 <script>
 import { importStyle } from "@/utils/index.js";
 
-const CDN_PREFIX = `${process.env.BASE_URL}libs`;
-// const CDN_PREFIX = "https://cdn.jsdelivr.net/npm";
+const CDN_PREFIX =
+  process.env.NODE_ENV === "production"
+    ? "https://cdn.jsdelivr.net/npm"
+    : `${process.env.BASE_URL}libs`;
 
 importStyle(`${CDN_PREFIX}/@perspective-dev/viewer/dist/css/pro.css`);
 importStyle(`${CDN_PREFIX}/@perspective-dev/viewer/dist/css/intl/custom.css`);
