@@ -2,6 +2,10 @@
 
 基于 Vue 2 的 [Perspective](https://perspective-dev.github.io/guide/perspective.html) + Apache Arrow 数据可视化 Demo。通过 Web Components 形式集成 `perspective-viewer`，并支持 Datagrid / Charts 等多种插件切换，且每个插件的配置会被独立保存与还原。
 
+**在线 Demo**：<https://ehehaye.github.io/perspective-vue/>
+
+![Perspective + Apache Arrow Demo](docs/screenshot.png)
+
 ## 技术栈
 
 - Vue `^2.6.14` + Vue CLI `~5.0.0`
@@ -13,6 +17,8 @@
 
 ```
 .
+├── docs/
+│   └── screenshot.png           # 项目运行截图
 ├── public/
 │   ├── libs/                    # Perspective 各模块的构建产物（基于 NPM 包结构同步）
 │   │   └── @perspective-dev/
@@ -49,16 +55,25 @@ pnpm run build
 pnpm run lint
 ```
 
+## 部署
+
+项目通过 GitHub Actions 自动部署到 GitHub Pages，推送到 `main` 分支即会触发构建：
+
+- 工作流配置：[.github/workflows/deploy.yml](.github/workflows/deploy.yml)
+- 在线地址：<https://ehehaye.github.io/perspective-vue/>
+
+仓库需在 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**（Fork 后部署时同样需要）。
+
 ## 工作原理
 
 ### 1. 模块加载
 
 `PerspectiveWrapper.vue` 通过 `import(/* webpackIgnore: true */ ...)` 在运行时从 `public/libs` 中加载 Perspective 的 JS / WASM 资源，避免被打包工具处理。
 
-默认使用本地 `public/libs`（`CDN_PREFIX = "/libs"`），如需切换为 CDN，把组件中的注释行打开即可：
+默认使用本地 `public/libs`（`CDN_PREFIX` 由 `process.env.BASE_URL` 拼接，自动适配部署子路径），如需切换为 CDN，把组件中的注释行打开即可：
 
 ```js
-const CDN_PREFIX = "/libs";
+const CDN_PREFIX = `${process.env.BASE_URL}libs`;
 // const CDN_PREFIX = "https://cdn.jsdelivr.net/npm";
 ```
 
