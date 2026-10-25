@@ -1,9 +1,14 @@
 <template>
-  <perspective-viewer ref="viewer" settings></perspective-viewer>
+  <div class="perspective-wrapper">
+    <perspective-viewer ref="viewer" settings></perspective-viewer>
+
+    <loading-overlay :visible="loading" />
+  </div>
 </template>
 
 <script>
 import { importStyle } from "@/utils/index.js";
+import LoadingOverlay from "./LoadingOverlay.vue";
 
 const CDN_PREFIX =
   process.env.NODE_ENV === "production"
@@ -17,6 +22,9 @@ let index = 0;
 
 export default {
   name: 'PerspectiveWrapper',
+  components: {
+    LoadingOverlay,
+  },
   props: {
     defaultPlugin: {
       type: String,
@@ -34,31 +42,42 @@ export default {
   data() {
     return {
       $viewer: null,
+      loading: false,
+      error: null,
       currentConfig: {},
       pluginConfigMap: new Map(),
     }
   },
   methods: {
     async init() {
-      const [perspective, buf] = await Promise.all([
-        this.loadPerspectiveModules(),
-        this.loadBuffer(),
-      ]);
+      this.loading = true;
+      this.error = null;
+      try {
+        const [perspective, buf] = await Promise.all([
+          this.loadPerspectiveModules(),
+          this.loadBuffer(),
+        ]);
 
-      const worker = await perspective.worker();
-      this.$viewer = this.$refs.viewer;
+        const worker = await perspective.worker();
+        this.$viewer = this.$refs.viewer;
 
-      this.$viewer.addEventListener("perspective-config-update", this.onConfigUpdate);
-      this.injectCss();
+        this.$viewer.addEventListener("perspective-config-update", this.onConfigUpdate);
+        this.injectCss();
 
-      const name = `my_arrow_${index++}`;
-      await worker.table(buf, { name });
-      await this.$viewer.load(worker);
-      await this.$viewer.restore({
-        table: name,
-        plugin: this.defaultPlugin,
-        settings: true,
-      });
+        const name = `my_arrow_${index++}`;
+        await worker.table(buf, { name });
+        await this.$viewer.load(worker);
+        await this.$viewer.restore({
+          table: name,
+          plugin: this.defaultPlugin,
+          settings: true,
+        });
+      } catch (e) {
+        this.error = e;
+        console.error("[PerspectiveWrapper] init failed:", e);
+      } finally {
+        this.loading = false;
+      }
     },
     injectCss() {
       if (this.readonly) {
@@ -119,7 +138,13 @@ export default {
 </script>
 
 <style>
-perspective-viewer {
+.perspective-wrapper {
+  position: relative;
   height: 600px;
+}
+
+perspective-viewer {
+  display: block;
+  height: 100%;
 }
 </style>
