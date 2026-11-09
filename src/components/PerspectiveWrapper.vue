@@ -34,6 +34,10 @@ export default {
       type: String,
       default: "https://cdn.jsdelivr.net/npm/superstore-arrow/superstore.arrow",
     },
+    title: {
+      type: String,
+      default: "",
+    },
     readonly: {
       type: Boolean,
       default: false,
@@ -71,6 +75,7 @@ export default {
           table: name,
           plugin: this.defaultPlugin,
           settings: true,
+          title: this.title || this.getTableName(),
         });
       } catch (e) {
         this.error = e;
@@ -78,6 +83,11 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    getTableName() {
+      const path = this.arrow.split(/[?#]/)[0];
+      const file = path.slice(path.lastIndexOf("/") + 1);
+      return file.replace(/\.[^.]+$/, "") || "untitled";
     },
     injectCss() {
       if (this.readonly) {

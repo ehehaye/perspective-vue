@@ -105,6 +105,7 @@ const CDN_PREFIX = `${process.env.BASE_URL}libs`;
 | -------------- | -------- | ----------------------------------------------------------------- | ----------------------------- |
 | `defaultPlugin`| `String` | `"Datagrid"`                                                      | 初始化时使用的 viewer 插件    |
 | `arrow`        | `String` | `https://cdn.jsdelivr.net/npm/superstore-arrow/superstore.arrow`  | Arrow 数据文件的 URL          |
+| `title`        | `String` | `""`                                                              | viewer 标题，留空时取自 `arrow` 的文件名（如 `superstore`） |
 
 使用示例：
 
@@ -112,6 +113,7 @@ const CDN_PREFIX = `${process.env.BASE_URL}libs`;
 <PerspectiveWrapper
   defaultPlugin="Datagrid"
   arrow="https://cdn.jsdelivr.net/npm/superstore-arrow/superstore.arrow"
+  title="Superstore"
 />
 ```
 
